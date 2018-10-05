@@ -1,6 +1,8 @@
 #include "Session.hpp"
 #include "Handler.hpp"
 
+#include <log/Log.hpp>
+
 SAMP_API_BEGIN_NS
 
 void Session::Start() {
@@ -34,11 +36,21 @@ void Session::ProcessRequest()
 	response_.version(request_.version());
 	response_.keep_alive(false);
 
+	auto method = request_.method_string();
+	SAMP_DEBUG("[{}] {} {}", socket_.remote_endpoint().address().to_string(), 
+							 method.to_string(), request_.target().to_string());
+
 	switch (request_.method())
 	{
 	case http::verb::post:
 		CreateResponse();
 		break;
+
+#ifdef _DEBUG
+	case http::verb::get:
+		CreateResponse();
+		break;
+#endif
 
 	default:	// We don't accept get methods currently
 		auto ip = socket_.remote_endpoint().address().to_string();
@@ -52,10 +64,10 @@ void Session::ProcessRequest()
 void Session::CreateResponse()
 {
 	auto ip = socket_.remote_endpoint().address().to_string();
-	if (handler_.VerifyRequest(request_, ip))
+	if (handler_.Authorize(request_, ip))
 		handler_.HandleRequest(request_, response_, ip);
 	else
-		handler_.HandleInvalidRequest(request_, response_, ip);
+		handler_.HandleUnauthorizedRequest(request_, response_, ip);
 }
 
 void Session::Write()

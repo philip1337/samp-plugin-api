@@ -39,9 +39,9 @@ bool Log::CheckPath(const std::string& path)
 }
 
 Log::Log() {
-	// Register console sink
-	m_Sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-	m_Sinks[0]->set_level(spdlog::level::info);
+	// Register console sink (we use samp logsink)
+	//m_Sinks.push_back(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
+	//m_Sinks[0]->set_level(spdlog::level::info);
 }
 
 void Log::SetupDefaultLogger(const std::string &name) {
@@ -51,6 +51,11 @@ void Log::SetupDefaultLogger(const std::string &name) {
 
 void Log::DropLoggers() {
 	spdlog::drop_all();	// Flush and drop
+}
+
+bool Log::RegisterLogSink(spdlog::sink_ptr ptr) {
+	m_Sinks.push_back(ptr);
+	return true;
 }
 
 bool Log::RegisterLogSink(const std::string & name) {

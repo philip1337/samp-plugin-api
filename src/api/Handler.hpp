@@ -23,9 +23,10 @@ public:
 
 	void HandleRequest(Request& req, Response& response, std::string& remote);
 	void HandleInvalidRequest(Request& req, Response& response, std::string& remote);
+	void HandleUnauthorizedRequest(Request& req, Response& response, std::string& remote);
 
-	bool VerifyRequest(Request& req, std::string& remote);
-	void InvalidRequest(Response& response);
+	bool Authorize(Request& req, std::string& remote);
+	void ShowError(Response& response, uint32_t code, std::string message);
 
 	//uint32_t OnRequest(Match& match, const Request& request, std::string& response, const std::string& type);
 

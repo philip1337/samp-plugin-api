@@ -19,6 +19,12 @@ struct BodyRequest {
 	std::string hash;
 };
 
+struct ErrorMessage {
+	uint32_t code;
+	std::string message;
+};
+
+
 SAMP_API_END_NS
 
 namespace spotify {
@@ -32,8 +38,18 @@ namespace spotify {
 			static codec::object_t<BodyRequest> codec() {
 				auto request = codec::object<BodyRequest>();
 				request.required("password", &BodyRequest::password);
-				request.optional("hash", &BodyRequest::hash);
+				request.required("hash", &BodyRequest::hash);
 				return request;
+			}
+		};
+
+		template <>
+		struct default_codec_t<ErrorMessage> {
+			static codec::object_t<ErrorMessage> codec() {
+				auto msg = codec::object<ErrorMessage>();
+				msg.required("code", &ErrorMessage::code);
+				msg.optional("message", &ErrorMessage::message);
+				return msg;
 			}
 		};
 	}  // namespace json

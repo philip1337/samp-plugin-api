@@ -7,6 +7,8 @@ SET(SAMP_API_SRCS
 	Endpoint.hpp
 	Handler.cpp
 	Handler.hpp
+	LogSink.cpp
+	LogSink.hpp
 	Route.cpp
 	Route.hpp
 	Session.cpp

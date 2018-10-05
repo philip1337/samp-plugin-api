@@ -26,6 +26,9 @@ public:
 	/** Register log sink */
 	bool RegisterLogSink(const std::string & name);
 
+	/** Register log sink */
+	bool RegisterLogSink(spdlog::sink_ptr ptr);
+
 	/** Logger */
 	spdlog::logger* GetLogger();
 
@@ -52,7 +55,7 @@ SAMP_API_END_NS
 #define SAMP_LOG_SHUTDOWN()  SAMP_API_NS::Logger->DropLoggers(); delete SAMP_API_NS::Logger
 
 #ifdef _DEBUG
-	#define SAMP_DEBUG(...) SAMP_API_NS::Logger->GetLogger()->debug(__VA_ARGS__)	
+	#define SAMP_DEBUG(...) SAMP_API_NS::Logger->GetLogger()->info(__VA_ARGS__)	
 #else
 	#define SAMP_DEBUG(...)
 #endif

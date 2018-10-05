@@ -7,12 +7,10 @@
 #include "Endpoint.hpp"
 
 #include <log/Log.hpp>
+#include "LogSink.hpp"
 
 using namespace sampapi;
 
-typedef void(*logprintf_t)(char* format, ...);
-
-logprintf_t logprintf;
 extern void *pAMXFunctions;
 
 boost::asio::io_service* io_service = nullptr;
@@ -22,8 +20,10 @@ bool OpenLog() {
 	// Init log
 	SAMP_LOG_INIT();
 
+	if (!Logger->RegisterLogSink(std::make_shared<samp_log_sink_mt>()))
+		return false;
+
 	// Client output log
-	bool LogIsReady = true;
 	if (!Logger->RegisterLogSink("logs/api.log"))
 		return false;
 
@@ -45,6 +45,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData)
 
 	// Failed to initialize log
 	if (!OpenLog()) {
+		// If no log we have to use the samp default output
 		logprintf("[SA-MP API] Failed to initialize log.");
 		return false;
 	}
@@ -52,7 +53,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData)
 	// Config
 	sampConfig = new Config();
 	if (!sampConfig->Load("server.cfg")) {
-		logprintf("[SA-MP API] Failed to read server.cfg.");
+		SAMP_INFO("[SA-MP API] Failed to read server.cfg.");
 		return false;
 	}
 
@@ -70,7 +71,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData)
 	// Get api password
 	std::string password;
 	if (!sampConfig->Get("api_password", password)) {
-		logprintf("[SA-MP API] Required server config not found: api_password");
+		SAMP_INFO("[SA-MP API] Required server config not found: api_password");
 		return false;
 	}
 
@@ -79,6 +80,9 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData)
 	auto& handler = e->GetHandler();
 	handler.SetPassword(password);
 	handler.SetSeed(stoul(seed));
+
+	// Start listening
+	SAMP_INFO("[SA-MP API] Starting listening on port {}.", port);
 
 	e->Listen();
 	return true;
