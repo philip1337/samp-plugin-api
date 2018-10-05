@@ -3,6 +3,7 @@
 #include "Types.hpp"
 #include "SampTypes.hpp"
 #include "PlayerManager.hpp"
+#include "Config.hpp"
 
 #include <xxhash.h>
 #include <a_samp.h>
@@ -212,6 +213,19 @@ bool Handler::Authorize(Request& req, std::string& remote)
 	//	SAMP_DEBUG("[{}] Skipping authorization.. uri: {}", remote, uri);
 	//	return true;
 	//#endif
+
+	// Check ip whitelist
+	std::vector<std::string> ips;
+	sampConfig->Get("api_ip_whitelist", ips);
+	bool ready = ips.size() > 0 ? false : true;
+	for (auto& ip : ips) {
+		if (ip.compare(remote) == 0)
+			ready = true;
+	}
+
+	// If ip isnt whitelisted.
+	if (!ready)
+		return false;
 
 	// Get body
 	auto data = boost::beast::buffers_to_string(req.body().data());

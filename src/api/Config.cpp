@@ -45,6 +45,18 @@ bool Config::Get(const std::string& index, std::string &dest, uint32_t pos)
 	return false;
 }
 
+bool Config::Get(const std::string& index, std::vector<std::string>& args)
+{
+	auto it = entries_.find(index);
+	if (it != entries_.end()) {
+		for (auto& entry : it->second) {
+			args.push_back(entry);
+		}
+		return true;
+	}
+	return false;
+}
+
 void Config::Get(const std::string& index, std::string &dest, std::string def, uint32_t pos)
 {
 	if (Get(index, dest, pos))
