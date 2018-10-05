@@ -3,38 +3,31 @@
 SAMP_API_BEGIN_NS
 
 
-void kick(const Request& req, Match m, std::string& response) {
-	response = "OK";
-
-	/* Print path vector to console */
-	std::copy(req.body.begin(), req.body.end(), std::ostream_iterator<char>(std::cout, ""));
+void kick(Request& req, Response& response, Match& match) {
+	response.result(http::status::not_found);
+	response.set(http::field::content_type, "text/plain");
+	boost::beast::ostream(response.body()) << "OK\r\n";
 }
 
 void Handler::RegisterFunctions() {
 	routes_.emplace("/kick/:name", kick);
 }
 
-void Handler::HandleRequest(const Request& req, Reply& rep)
-{
-	// Router
-	auto match = router_.set(req.uri);
-
-	// Handle request
-	rep.status = OnRequest(match, req, rep.content, req.method);
+void Handler::InvalidRequest(Response& response) {
+	response.result(http::status::not_found);
+	response.set(http::field::content_type, "text/plain");
+	boost::beast::ostream(response.body()) << "Invalid request\r\n";
 }
 
-Reply::status_type Handler::OnRequest(Match& match, const Request& request, std::string& response, const std::string& type)
-{
-	for (auto& req : routes_) {
-		if (match.test(req.first)) {
-			req.second(request, match, response);
-			return Reply::status_type::ok;
+void Handler::HandleRequest(Request& req, Response& response) {
+	auto match = route_.set(req.target().to_string());
+	for (auto& route : routes_) {
+		if (match.test(route.first)) {
+			route.second(req, response, match);
+			return;
 		}
 	}
-
-	return Reply::status_type::not_found;
+	InvalidRequest(response);
 }
-
-
 
 SAMP_API_END_NS

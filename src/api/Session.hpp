@@ -1,76 +1,82 @@
-#ifndef SRC_API_SESSION_HPP
-#define SRC_API_SESSION_HPP
+#ifndef SRC_API_CONNECTION_HPP
+#define SRC_API_CONNECTION_HPP
 
 #pragma once
 
 #include <Config.hpp>
 
-#include <memory>
+#include <boost/beast/core.hpp>
+#include <boost/beast/http.hpp>
+#include <boost/beast/version.hpp>
 #include <boost/asio.hpp>
+#include <boost/filesystem.hpp>
+#include <chrono>
+#include <cstdlib>
+#include <cstring>
+#include <iostream>
+#include <list>
+#include <memory>
+#include <string>
 
-#include "RequestParser.hpp"
-#include "Request.hpp"
-#include "Reply.hpp"
-#include "Route.hpp"
-#include "Handler.hpp"
+#include "FieldsAlloc.hpp"
 
 SAMP_API_BEGIN_NS
 
+namespace ip = boost::asio::ip;         // from <boost/asio.hpp>
+using tcp = boost::asio::ip::tcp;       // from <boost/asio.hpp>
+namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
+
 class SessionManager;
+class Handler;
 
-/// Represents a single connection from a client.
-class Session
-	: public std::enable_shared_from_this<Session>
+class Session : public std::enable_shared_from_this<Session>
 {
-	friend class Endpoint;
-
 public:
-	Session(const Session&) = delete;
-	Session& operator=(const Session&) = delete;
+    Session(tcp::socket socket, Handler& handler, SessionManager& manager)
+        : socket_(std::move(socket))
+		, handler_(handler)
+		, manager_(manager)
+    {}
 
-	/// Construct a connection with the given socket.
-	explicit Session(boost::asio::io_service& io_service,
-		SessionManager& manager, Handler& handler);
-
-	/// Start the first asynchronous operation for the connection.
+    // Initiate the asynchronous operations associated with the connection.
 	void Start();
 
-	/// Stop all asynchronous operations associated with the connection.
 	void Stop();
 
 private:
-	/// Perform an asynchronous read operation.
-	void Read();
+	Handler& handler_;
+	SessionManager& manager_;
 
-	/// Perform an asynchronous write operation.
+    // The socket for the currently connected client.
+    tcp::socket socket_;
+
+    // The buffer for performing reads.
+    boost::beast::flat_buffer buffer_{8192};
+
+    // The request message.
+    http::request<http::dynamic_body> request_;
+
+    // The response message.
+    http::response<http::dynamic_body> response_;
+
+    // The timer for putting a deadline on connection processing.
+    boost::asio::basic_waitable_timer<std::chrono::steady_clock> deadline_{
+        socket_.get_io_service(), std::chrono::seconds(60)};
+
+    // Asynchronously receive a complete request message.
+	void ReadRequest();
+
+    // Determine what needs to be done with the request message.
+	void ProcessRequest();
+
+    // Construct a response message based on the program state.
+	void CreateResponse();
+
+    // Asynchronously transmit the response message.
 	void Write();
 
-	/// Socket for the connection.
-	boost::asio::ip::tcp::socket socket_;
-
-	/// The manager for this connection.
-	SessionManager& session_manager_;
-
-	/// The handler used to process the incoming request.
-	Handler& handler_;
-
-	/// Buffer for incoming data.
-	//boost::asio::streambuf buffer_;
-	std::array<char, 8192> buffer_;
-
-	/// The incoming request.
-	Request request_;
-
-	/// The parser for the incoming request.
-	RequestParser request_parser_;
-
-	/// The reply to be sent back to the client.
-	Reply reply_;
-
-	/// Result
-	RequestParser::result_type result;
-
-	uint32_t offset_;
+    // Check whether we have spent enough time on this connection.
+	void CheckDeadline();
 };
 
 typedef std::shared_ptr<Session> SessionPtr;

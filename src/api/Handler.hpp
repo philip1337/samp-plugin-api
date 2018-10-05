@@ -4,26 +4,30 @@
 #pragma once
 
 #include <Config.hpp>
-#include "Route.hpp"
 
-#include "Request.hpp"
-#include "Reply.hpp"
+#include <boost/beast/http.hpp>
+#include "Route.hpp"
 
 SAMP_API_BEGIN_NS
 
-typedef void(*apiFunc)(const Request& req, Match m, std::string& response);
+namespace http = boost::beast::http;    // from <boost/beast/http.hpp>
+
+typedef http::request<http::dynamic_body> Request;
+typedef http::response<http::dynamic_body> Response;
+
+typedef void(*apiFunc)(Request& req, Response& response, Match& match);
 
 class Handler {
 public:
 	void RegisterFunctions();
-	void HandleRequest(const Request& req, Reply& rep);
+	void HandleRequest(Request& req, Response& response);
+	void InvalidRequest(Response& response);
 
-	Reply::status_type OnRequest(Match& match, const Request& request, std::string& response, const std::string& type);
+	//uint32_t OnRequest(Match& match, const Request& request, std::string& response, const std::string& type);
 
 private:
-	Route router_;
-
 	std::map<std::string, apiFunc> routes_;
+	Route route_;
 };
 
 SAMP_API_END_NS

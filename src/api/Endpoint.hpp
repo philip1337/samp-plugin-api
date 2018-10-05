@@ -6,10 +6,8 @@
 #include <Config.hpp>
 
 #include <boost/asio.hpp>
-
-#include "Handler.hpp"
-#include "Route.hpp"
 #include "SessionManager.hpp"
+#include "Handler.hpp"
 
 SAMP_API_BEGIN_NS
 
@@ -22,11 +20,11 @@ public:
 private:
 	boost::asio::ip::tcp::endpoint endpoint_;
 	boost::asio::ip::tcp::acceptor acceptor_;
+	boost::asio::ip::tcp::socket socket_;
 	boost::asio::io_service* service_;
 
-	SessionManager manager_;
-	Route route_;
 	Handler handler_;
+	SessionManager manager_;
 };
 
 SAMP_API_END_NS

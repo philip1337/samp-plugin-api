@@ -4,10 +4,13 @@ vars = {
 	'fmtlib': 'https://github.com/fmtlib',
 	'gabime': 'https://github.com/gabime',
 	'spotify': 'https://github.com/spotify',
+	'boostorg': 'https://github.com/boostorg',
 }
 
 deps = {
 	'external/boost': Var('sphinxila') + '/boost.git@ec1c73e0ccc28a5c41fca3e92058b55f6c49b48f',
+	'external/boost-beast': Var('boostorg') + '/beast.git@9dc9ca13b9c08c1597d05bcf6c19be357e426041',
+
 	'external/sampsdk': Var('github_zeex') + '/samp-plugin-sdk.git@15ffdfcb1faad2c77e57a64ccdd8147a9a7b92f5',
 	'external/sampgdk': Var('github_zeex') + '/sampgdk.git@0705676ff6d47e33ec4d2a53754aabeec038b472',
 

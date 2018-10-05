@@ -1,4 +1,17 @@
 add_subdirectory(${SAMP_API_EXTERNAL}/boost)
+
+###################################################
+# Boost beast
+###################################################
+SET(BOOST_BEAST_PATH ${SAMP_API_EXTERNAL}/boost-beast)
+
+add_library(boost_beast INTERFACE)
+add_library(boost::beast ALIAS boost_beast)
+
+target_include_directories(boost_beast INTERFACE
+  $<BUILD_INTERFACE:${BOOST_BEAST_PATH}/include>
+)
+
 add_subdirectory(${SAMP_API_EXTERNAL}/fmt)
 add_subdirectory(${SAMP_API_EXTERNAL}/spdlog)
 

@@ -1,11 +1,14 @@
 #include "Endpoint.hpp"
 #include "Session.hpp"
 
+#include <boost/beast.hpp>
+
 SAMP_API_BEGIN_NS
 
 Endpoint::Endpoint(boost::asio::io_service* service, uint32_t port) 
 	:endpoint_(boost::asio::ip::tcp::v4(), port)
 	,acceptor_(*service, endpoint_)
+	,socket_(*service)
 {
 	handler_.RegisterFunctions();
 
@@ -15,14 +18,12 @@ Endpoint::Endpoint(boost::asio::io_service* service, uint32_t port)
 
 void Endpoint::Listen()
 {
-	auto sesh = std::make_shared<Session>(*service_, manager_, handler_);
-	acceptor_.async_accept(sesh->socket_,
-		[sesh, this](const boost::system::error_code& accept_error)
+	acceptor_.async_accept(socket_,
+		[this](boost::beast::error_code ec)
 	{
+		if (!ec)
+			manager_.Start(std::make_shared<Session>(std::move(socket_), handler_, manager_));
 		Listen();
-		if (!accept_error) {
-			manager_.Start(sesh);
-		}
 	});
 }
 

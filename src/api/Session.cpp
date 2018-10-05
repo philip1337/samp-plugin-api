@@ -1,69 +1,93 @@
 #include "Session.hpp"
-#include "SessionManager.hpp"
-#include "RequestParser.hpp"
-
-#include <utility>
-#include <vector>
+#include "Handler.hpp"
 
 SAMP_API_BEGIN_NS
 
-Session::Session(boost::asio::io_service& io_service,
-	SessionManager& manager, Handler& handler)
-	: socket_(io_service)
-	, session_manager_(manager)
-	, handler_(handler)
-{
-	result = RequestParser::indeterminate;
+void Session::Start() {
+	ReadRequest();
+	CheckDeadline();
 }
 
-void Session::Start()
-{
-	Read();
-}
-
-void Session::Stop()
-{
+void Session::Stop() {
 	socket_.close();
 }
 
-void Session::Read()
+void Session::ReadRequest()
 {
-	auto self(shared_from_this());
-	socket_.async_read_some(boost::asio::buffer(buffer_),
-		[this, self](boost::system::error_code ec, std::size_t bytes_transferred)
+	auto self = shared_from_this();
+
+	http::async_read(
+		socket_,
+		buffer_,
+		request_,
+		[self](boost::beast::error_code ec,
+			std::size_t bytes_transferred)
 	{
-		if (!ec) {
-			std::tie(result, std::ignore) = request_parser_.parse(
-				request_, buffer_.data(), buffer_.data() + bytes_transferred);
-			if (result == RequestParser::good) {
-				handler_.HandleRequest(request_, reply_);
-				Write();
-			} else if (result == RequestParser::bad) {
-				reply_ = Reply::stock_reply(Reply::bad_request);
-				Write();
-			} else {
-				Read();
-			}
-		} else if (ec != boost::asio::error::operation_aborted) {
-			session_manager_.Stop(shared_from_this());
-		}
+		boost::ignore_unused(bytes_transferred);
+		if (!ec)
+			self->ProcessRequest();
 	});
+}
+
+void Session::ProcessRequest()
+{
+	response_.version(request_.version());
+	response_.keep_alive(false);
+
+	switch (request_.method())
+	{
+	case http::verb::get:
+		response_.result(http::status::ok);
+		response_.set(http::field::server, "Beast");
+		CreateResponse();
+		break;
+
+	default:
+		// We return responses indicating an error if
+		// we do not recognize the request method.
+		response_.result(http::status::bad_request);
+		response_.set(http::field::content_type, "text/plain");
+		boost::beast::ostream(response_.body())
+			<< "Invalid request-method '"
+			<< request_.method_string().to_string()
+			<< "'";
+		break;
+	}
+
+	Write();
+}
+
+void Session::CreateResponse()
+{
+	handler_.HandleRequest(request_, response_);
 }
 
 void Session::Write()
 {
-	auto self(shared_from_this());
-	boost::asio::async_write(socket_, reply_.to_buffers(),
-		[this, self](boost::system::error_code ec, std::size_t)
-	{
-		if (!ec) {
-			// Initiate graceful connection closure.
-			boost::system::error_code ignored_ec;
-			socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ignored_ec);
-		}
+	auto self = shared_from_this();
 
-		if (ec != boost::asio::error::operation_aborted) {
-			session_manager_.Stop(shared_from_this());
+	response_.set(http::field::content_length, response_.body().size());
+
+	http::async_write(
+		socket_,
+		response_,
+		[self](boost::beast::error_code ec, std::size_t)
+	{
+		self->socket_.shutdown(tcp::socket::shutdown_send, ec);
+		self->deadline_.cancel();
+	});
+}
+
+void Session::CheckDeadline()
+{
+	auto self = shared_from_this();
+	deadline_.async_wait(
+		[self](boost::beast::error_code ec)
+	{
+		if (!ec)
+		{
+			// Close socket to cancel any outstanding operation.
+			self->socket_.close(ec);
 		}
 	});
 }

@@ -3,25 +3,17 @@ include(AddSAMPPlugin)
 
 SET(SAMP_API_SRCS
 	Api.cpp
-
+	
 	Endpoint.cpp
 	Endpoint.hpp
+	Handler.cpp
+	Handler.hpp
+	Route.cpp
+	Route.hpp
 	Session.cpp
 	Session.hpp
 	SessionManager.cpp
 	SessionManager.hpp
-	MimeTypes.cpp
-	MimeTypes.hpp
-	Request.cpp
-	Request.hpp
-	RequestParser.cpp
-	RequestParser.hpp
-	Route.cpp
-	Route.hpp
-	Reply.cpp
-	Reply.hpp
-	Handler.cpp
-	Handler.hpp
 )
 
 SET(PLUGIN_FILES
@@ -39,5 +31,9 @@ target_link_libraries(api
 	fmt
 	spdlog
 	spotify-json
+
+	boost::system
 	boost::asio
+	boost::coroutine
+	boost::beast
 )
