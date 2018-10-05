@@ -21,14 +21,21 @@ class Handler {
 public:
 	void RegisterFunctions();
 
-	void HandleRequest(Request& req, Response& response);
-	void HandleInvalidRequest(Request& req, Response& response);
+	void HandleRequest(Request& req, Response& response, std::string& remote);
+	void HandleInvalidRequest(Request& req, Response& response, std::string& remote);
 
+	bool VerifyRequest(Request& req, std::string& remote);
 	void InvalidRequest(Response& response);
 
 	//uint32_t OnRequest(Match& match, const Request& request, std::string& response, const std::string& type);
 
+	void SetPassword(std::string& password) { password_ = password; }
+	void SetSeed(uint32_t seed) { seed_ = seed; }
+
 private:
+	std::string password_;
+	uint32_t seed_;
+
 	std::map<std::string, apiFunc> routes_;
 	Route route_;
 };

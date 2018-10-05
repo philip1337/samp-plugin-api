@@ -1,6 +1,8 @@
 SET(SAMP_API_SRCS
 	Api.cpp
 	
+	Config.cpp
+	Config.hpp
 	Endpoint.cpp
 	Endpoint.hpp
 	Handler.cpp
@@ -26,8 +28,8 @@ api_add_samp_plugin(api
 
 target_link_libraries(api
 	api_share
-	fmt
-	spdlog
+	api_share.log
+
 	spotify-json
 
 	boost::system

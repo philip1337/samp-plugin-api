@@ -16,6 +16,7 @@ public:
 	Endpoint(boost::asio::io_service* service, uint32_t port);
 
 	void Listen();
+	Handler& GetHandler() { return handler_; };
 
 private:
 	boost::asio::ip::tcp::endpoint endpoint_;

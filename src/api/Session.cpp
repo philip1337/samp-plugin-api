@@ -1,8 +1,6 @@
 #include "Session.hpp"
 #include "Handler.hpp"
 
-#include "Types.hpp"
-
 SAMP_API_BEGIN_NS
 
 void Session::Start() {
@@ -39,45 +37,25 @@ void Session::ProcessRequest()
 	switch (request_.method())
 	{
 	case http::verb::post:
-		response_.result(http::status::ok);
-		response_.set(http::field::server, "Beast");
 		CreateResponse();
 		break;
 
-	default:
-		// We return responses indicating an error if
-		// we do not recognize the request method.
-		response_.result(http::status::bad_request);
-		response_.set(http::field::content_type, "text/plain");
-		boost::beast::ostream(response_.body())
-			<< "Invalid request-method '"
-			<< request_.method_string().to_string()
-			<< "'";
+	default:	// We don't accept get methods currently
+		auto ip = socket_.remote_endpoint().address().to_string();
+		handler_.HandleInvalidRequest(request_, response_, ip);
 		break;
 	}
 
 	Write();
 }
 
-bool Session::VerifyRequest()
-{
-	// Get body
-	auto data = boost::beast::buffers_to_string(request_.body().data());
-
-	try {
-		const auto body = spotify::json::decode<BodyRequest>(data);
-		// TODO: Verification process
-		return true;
-	} catch (const spotify::json::decode_exception &e) {}
-	return false;
-}
-
 void Session::CreateResponse()
 {
-	if (VerifyRequest())
-		handler_.HandleRequest(request_, response_);
+	auto ip = socket_.remote_endpoint().address().to_string();
+	if (handler_.VerifyRequest(request_, ip))
+		handler_.HandleRequest(request_, response_, ip);
 	else
-		handler_.HandleInvalidRequest(request_, response_);
+		handler_.HandleInvalidRequest(request_, response_, ip);
 }
 
 void Session::Write()

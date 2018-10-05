@@ -78,9 +78,6 @@ private:
 
     // Check whether we have spent enough time on this connection.
 	void CheckDeadline();
-
-	// Verify
-	bool VerifyRequest();
 };
 
 typedef std::shared_ptr<Session> SessionPtr;
