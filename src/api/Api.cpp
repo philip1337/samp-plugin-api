@@ -137,6 +137,6 @@ PLUGIN_EXPORT void PLUGIN_CALL ProcessTick()
 	if (!ready)
 		return;
 
-	io_service->poll_one();
+	io_service->poll();
 	io_service->reset();
 }
