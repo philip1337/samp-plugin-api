@@ -1,0 +1,9 @@
+LIBRARY	"api"
+
+EXPORTS
+	Supports
+	Load
+	Unload
+	AmxLoad
+	AmxUnload
+	ProcessTick

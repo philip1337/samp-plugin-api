@@ -30,3 +30,6 @@
 *.exe
 *.out
 *.app
+
+.gclient_entries
+external/

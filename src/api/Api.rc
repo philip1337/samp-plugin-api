@@ -1,0 +1,22 @@
+#include <windows.h>
+
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+1 VERSIONINFO
+	FILEVERSION 1,0,0,0
+{
+	BLOCK "StringFileInfo"
+	{
+		BLOCK "04090025"
+		{
+			VALUE "FileDescription", "SA-MP API Plugin"
+			VALUE "LegalCopyright", "Copyright © 2017 ProMetheus"
+			VALUE "OriginalFilename", "api.dll"
+			VALUE "ProductName", "SA-MP API Plugin"
+			VALUE "ProductVersion", "v1.0.0"
+		}
+	}
+	BLOCK "VarFileInfo"
+	{
+		VALUE "Translation", 1033, 37
+	}
+}
