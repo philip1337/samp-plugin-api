@@ -20,7 +20,10 @@ typedef void(*apiFunc)(Request& req, Response& response, Match& match);
 class Handler {
 public:
 	void RegisterFunctions();
+
 	void HandleRequest(Request& req, Response& response);
+	void HandleInvalidRequest(Request& req, Response& response);
+
 	void InvalidRequest(Response& response);
 
 	//uint32_t OnRequest(Match& match, const Request& request, std::string& response, const std::string& type);

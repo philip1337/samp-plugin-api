@@ -1,3 +1,6 @@
+include(AMXConfig)
+include(AddSAMPPlugin)
+
 function(api_add_samp_plugin name)
 	# Add plugin
 	add_samp_plugin(${name} ${ARGN})

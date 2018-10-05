@@ -1,6 +1,8 @@
 #include "Session.hpp"
 #include "Handler.hpp"
 
+#include "Types.hpp"
+
 SAMP_API_BEGIN_NS
 
 void Session::Start() {
@@ -36,7 +38,7 @@ void Session::ProcessRequest()
 
 	switch (request_.method())
 	{
-	case http::verb::get:
+	case http::verb::post:
 		response_.result(http::status::ok);
 		response_.set(http::field::server, "Beast");
 		CreateResponse();
@@ -57,17 +59,31 @@ void Session::ProcessRequest()
 	Write();
 }
 
+bool Session::VerifyRequest()
+{
+	// Get body
+	auto data = boost::beast::buffers_to_string(request_.body().data());
+
+	try {
+		const auto body = spotify::json::decode<BodyRequest>(data);
+		// TODO: Verification process
+		return true;
+	} catch (const spotify::json::decode_exception &e) {}
+	return false;
+}
+
 void Session::CreateResponse()
 {
-	handler_.HandleRequest(request_, response_);
+	if (VerifyRequest())
+		handler_.HandleRequest(request_, response_);
+	else
+		handler_.HandleInvalidRequest(request_, response_);
 }
 
 void Session::Write()
 {
 	auto self = shared_from_this();
-
 	response_.set(http::field::content_length, response_.body().size());
-
 	http::async_write(
 		socket_,
 		response_,

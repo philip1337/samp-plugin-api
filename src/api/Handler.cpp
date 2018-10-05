@@ -30,4 +30,9 @@ void Handler::HandleRequest(Request& req, Response& response) {
 	InvalidRequest(response);
 }
 
+void Handler::HandleInvalidRequest(Request & req, Response & response) {
+	// TODO: access.log
+	InvalidRequest(response);
+}
+
 SAMP_API_END_NS

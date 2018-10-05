@@ -16,5 +16,5 @@ deps = {
 
 	'external/fmt': Var('fmtlib') + '/fmt.git@deb901b9e48df922cf119d03a262c15264e7540f',
 	'external/spdlog': Var('gabime') + '/spdlog.git@2fa538779f8d69a3b20958ddf6dab7885ff030ac',
-	'external/spotify-json': Var('spotify') + '/spotify-json.git@abb2350a693063975d00d3503c2cf356cfedcb0d',
+	'external/spotify-json': Var('sphinxila') + '/spotify-json.git@c53628d5b44733858d7b66db188f640ffd96047a',
 }

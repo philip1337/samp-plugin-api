@@ -1,6 +1,3 @@
-include(AMXConfig)
-include(AddSAMPPlugin)
-
 SET(SAMP_API_SRCS
 	Api.cpp
 	
@@ -14,6 +11,7 @@ SET(SAMP_API_SRCS
 	Session.hpp
 	SessionManager.cpp
 	SessionManager.hpp
+	Types.hpp
 )
 
 SET(PLUGIN_FILES

@@ -41,6 +41,7 @@ public:
     // Initiate the asynchronous operations associated with the connection.
 	void Start();
 
+	// Stop all operations for this session
 	void Stop();
 
 private:
@@ -77,6 +78,9 @@ private:
 
     // Check whether we have spent enough time on this connection.
 	void CheckDeadline();
+
+	// Verify
+	bool VerifyRequest();
 };
 
 typedef std::shared_ptr<Session> SessionPtr;
