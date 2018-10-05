@@ -36,6 +36,7 @@ public:
         : socket_(std::move(socket))
 		, handler_(handler)
 		, manager_(manager)
+		, init_time_(std::chrono::system_clock::now())
     {}
 
     // Initiate the asynchronous operations associated with the connection.
@@ -63,6 +64,9 @@ private:
     // The timer for putting a deadline on connection processing.
     boost::asio::basic_waitable_timer<std::chrono::steady_clock> deadline_{
         socket_.get_io_service(), std::chrono::seconds(60)};
+
+	// Init time
+	std::chrono::system_clock::time_point init_time_;
 
     // Asynchronously receive a complete request message.
 	void ReadRequest();

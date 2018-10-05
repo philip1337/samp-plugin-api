@@ -16,14 +16,15 @@ SAMP_API_BEGIN_NS
 
 struct BodyRequest {
 	std::string password;
-	std::string hash;
+	uint32_t hash;
 };
 
-struct ErrorMessage {
-	uint32_t code;
+struct Message {
+	std::string type;
+	uint32_t code = 200;
 	std::string message;
+	uint32_t time;
 };
-
 
 SAMP_API_END_NS
 
@@ -44,11 +45,13 @@ namespace spotify {
 		};
 
 		template <>
-		struct default_codec_t<ErrorMessage> {
-			static codec::object_t<ErrorMessage> codec() {
-				auto msg = codec::object<ErrorMessage>();
-				msg.required("code", &ErrorMessage::code);
-				msg.optional("message", &ErrorMessage::message);
+		struct default_codec_t<Message> {
+			static codec::object_t<Message> codec() {
+				auto msg = codec::object<Message>();
+				msg.required("type", &Message::type);
+				msg.required("code", &Message::code);
+				msg.optional("message", &Message::message);
+				msg.optional("response_time", &Message::time);
 				return msg;
 			}
 		};

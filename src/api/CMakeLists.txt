@@ -9,6 +9,10 @@ SET(SAMP_API_SRCS
 	Handler.hpp
 	LogSink.cpp
 	LogSink.hpp
+	Player.cpp
+	Player.hpp
+	PlayerManager.cpp
+	PlayerManager.hpp
 	Route.cpp
 	Route.hpp
 	Session.cpp

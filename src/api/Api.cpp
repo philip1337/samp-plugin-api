@@ -1,5 +1,7 @@
-#include <amx/amx.h>
-#include <plugincommon.h>
+#include <sampgdk/core.h>
+#include <sampgdk/sdk.h>
+#include <a_players.h>
+#include <a_samp.h>
 
 #include <boost/asio/io_service.hpp>
 
@@ -7,6 +9,7 @@
 #include "Endpoint.hpp"
 
 #include <log/Log.hpp>
+#include "PlayerManager.hpp"
 #include "LogSink.hpp"
 
 using namespace sampapi;
@@ -15,6 +18,7 @@ extern void *pAMXFunctions;
 
 boost::asio::io_service* io_service = nullptr;
 Endpoint* e = nullptr;
+bool ready = false;
 
 bool OpenLog() {
 	// Init log
@@ -32,16 +36,41 @@ bool OpenLog() {
 	return true;
 }
 
+PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeInit() {
+	SAMP_DEBUG("[SA-MP API] Initializing gamemode");
+	ready = true;
+	return true;
+}
+
+PLUGIN_EXPORT bool PLUGIN_CALL OnGameModeExit() {
+	SAMP_DEBUG("[SA-MP API] Gamemode shutdown");
+	ready = false;
+	return true;
+}
+
+PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerConnect(int playerid) {
+	playerManager->AddPlayer(playerid);
+	return true;
+}
+
+PLUGIN_EXPORT bool PLUGIN_CALL OnPlayerDisconnect(int playerid, int reason) {
+	playerManager->RemovePlayer(playerid);
+	return true;
+}
+
 PLUGIN_EXPORT unsigned int PLUGIN_CALL Supports()
 {
-	return SUPPORTS_VERSION | SUPPORTS_AMX_NATIVES | SUPPORTS_PROCESS_TICK;
+	return sampgdk::Supports() | SUPPORTS_PROCESS_TICK;
 }
 
 PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData)
 {
+	auto ret = sampgdk::Load(ppData);
+
 	// SA-MP Api functions
 	pAMXFunctions = ppData[PLUGIN_DATA_AMX_EXPORTS];
 	logprintf = (logprintf_t)ppData[PLUGIN_DATA_LOGPRINTF];
+	playerManager = new PlayerManager();
 
 	// Failed to initialize log
 	if (!OpenLog()) {
@@ -85,7 +114,7 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData)
 	SAMP_INFO("[SA-MP API] Starting listening on port {}.", port);
 
 	e->Listen();
-	return true;
+	return ret;
 }
 
 PLUGIN_EXPORT void PLUGIN_CALL Unload()
@@ -93,7 +122,9 @@ PLUGIN_EXPORT void PLUGIN_CALL Unload()
 	io_service->stop();
 	io_service = nullptr;
 	sampConfig = nullptr;
+	playerManager = nullptr;
 	SAMP_LOG_SHUTDOWN();
+	sampgdk::Unload();
 }
 
 AMX_NATIVE_INFO PluginNatives[] =
@@ -101,18 +132,11 @@ AMX_NATIVE_INFO PluginNatives[] =
 	{ 0, 0 }
 };
 
-PLUGIN_EXPORT int PLUGIN_CALL AmxLoad(AMX *amx)
-{
-	return amx_Register(amx, PluginNatives, -1);
-}
-
-PLUGIN_EXPORT int PLUGIN_CALL AmxUnload(AMX *amx)
-{
-	return AMX_ERR_NONE;
-}
-
 PLUGIN_EXPORT void PLUGIN_CALL ProcessTick()
 {
+	if (!ready)
+		return;
+
 	io_service->poll_one();
 	io_service->reset();
 }

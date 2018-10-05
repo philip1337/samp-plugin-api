@@ -43,18 +43,12 @@ void Session::ProcessRequest()
 	switch (request_.method())
 	{
 	case http::verb::post:
-		CreateResponse();
-		break;
-
-#ifdef _DEBUG
 	case http::verb::get:
 		CreateResponse();
 		break;
-#endif
 
-	default:	// We don't accept get methods currently
-		auto ip = socket_.remote_endpoint().address().to_string();
-		handler_.HandleInvalidRequest(request_, response_, ip);
+	// I guess empty response
+	default:
 		break;
 	}
 
@@ -64,10 +58,7 @@ void Session::ProcessRequest()
 void Session::CreateResponse()
 {
 	auto ip = socket_.remote_endpoint().address().to_string();
-	if (handler_.Authorize(request_, ip))
-		handler_.HandleRequest(request_, response_, ip);
-	else
-		handler_.HandleUnauthorizedRequest(request_, response_, ip);
+	handler_.HandleRequest(request_, response_, ip, &init_time_);
 }
 
 void Session::Write()
